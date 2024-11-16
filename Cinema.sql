@@ -120,7 +120,6 @@ JOIN PROIEZIONI ON FILM.CodFilm = PROIEZIONI.CodFilm
 WHERE FILM.Genere = 'Fantascienza'
 GROUP BY FILM.Titolo
 HAVING MIN(PROIEZIONI.DataProiezione) >= '2001-01-01';
-
 -- 22
 SELECT SALE.Nome AS Sala, SUM(PROIEZIONI.Incasso) AS IncassoTotale
 FROM SALE
@@ -129,5 +128,62 @@ WHERE SALE.Città = 'Pisa'
 AND PROIEZIONI.DataProiezione BETWEEN '2005-01-01' AND '2005-01-31'
 GROUP BY SALE.Nome
 HAVING SUM(PROIEZIONI.Incasso) > 20000;
+-- 23
+SELECT Titolo
+FROM FILM 
+WHERE CodFilm IN (
+    SELECT CodFilm 
+    FROM PROIEZIONI 
+    WHERE Incasso = (SELECT MAX(Incasso) FROM PROIEZIONI)
+)
+;
+-- 24
+SELECT DISTINCT ATTORI.Nome
+FROM ATTORI
+JOIN RECITA ON ATTORI.CodAttore = RECITA.CodAttore
+JOIN FILM ON RECITA.CodFilm = FILM.CodFilm
+WHERE FILM.CodFilm IN (
+    SELECT CodFilm
+    FROM PROIEZIONI
+    WHERE Incasso = (SELECT MAX(Incasso) FROM PROIEZIONI)
+)
+;
+-- 25
+SELECT Nome 
+FROM ATTORI 
+WHERE CodAttore NOT IN (
+    SELECT CodAttore 
+    FROM RECITA 
+    WHERE CodFilm IN (
+        SELECT CodFilm 
+        FROM PROIEZIONI 
+        WHERE Incasso = (SELECT MAX(Incasso) FROM PROIEZIONI)
+    )
+)
+;
+-- 26
+SELECT Titolo 
+FROM FILM 
+WHERE CodFilm IN (
+    SELECT CodFilm 
+    FROM (
+        SELECT CodFilm, SUM(Incasso) AS IncassoTotale 
+        FROM PROIEZIONI 
+        GROUP BY CodFilm 
+        ORDER BY IncassoTotale DESC 
+    ) AS Subquery
+);
+-- 27
+SELECT Nome 
+FROM ATTORI 
+WHERE CodAttore NOT IN (
+    SELECT CodAttore 
+    FROM RECITA 
+    WHERE CodFilm IN (
+        SELECT CodFilm 
+        FROM FILM 
+        WHERE Genere = 'Horror'
+    )
+);
 
 
